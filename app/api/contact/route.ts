@@ -42,50 +42,36 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient()
-    const { data, error } = await supabase.from("contact_submissions").insert({
-      name: body.name,
-      email: body.email,
-      subject: body.subject,
-      message: body.message,
-    })
+
+    const { data, error } = await supabase
+      .from("contact_submissions")
+      .insert([
+        {
+          name: body.name,
+          email: body.email,
+          subject: body.subject,
+          message: body.message,
+        },
+      ])
+      .select()
 
     if (error) {
-      console.error("[Supabase Error]:", error)
-      return NextResponse.json({ error: "Failed to save your message. Please try again." }, { status: 500 })
+      console.error("[Supabase Insert Error]:", error)
+      console.error("[v0] Error details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      })
+      return NextResponse.json({ error: "Failed to save your message. Please try again later." }, { status: 500 })
     }
 
-    console.log("[Contact Form] New message saved:", {
+    console.log("[v0] Contact form submission saved successfully:", {
+      id: data?.[0]?.id,
       from: body.email,
       name: body.name,
       subject: body.subject,
-      message: body.message,
       timestamp: new Date().toISOString(),
     })
-
-    // In production, integrate with Resend, SendGrid, or similar service
-    console.log("[Contact Form] New message received:", {
-      from: body.email,
-      name: body.name,
-      subject: body.subject,
-      message: body.message,
-      timestamp: new Date().toISOString(),
-    })
-
-    // TODO: Integrate with email service
-    // Example with Resend (uncomment when API key is added):
-    // const { data, error } = await resend.emails.send({
-    //   from: 'noreply@yourdomain.com',
-    //   to: CONTACT_EMAIL,
-    //   replyTo: body.email,
-    //   subject: `New Contact Form: ${body.subject}`,
-    //   html: `
-    //     <h2>New Message from ${body.name}</h2>
-    //     <p><strong>Email:</strong> ${body.email}</p>
-    //     <p><strong>Subject:</strong> ${body.subject}</p>
-    //     <p><strong>Message:</strong></p>
-    //     <p>${body.message.replace(/\n/g, '<br>')}</p>
-    //   `,
-    // })
 
     return NextResponse.json(
       {
@@ -96,6 +82,10 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error("[Contact Form Error]:", error)
+    console.error("[v0] Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json({ error: "Failed to process your message. Please try again." }, { status: 500 })
   }
 }

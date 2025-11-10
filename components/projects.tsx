@@ -113,7 +113,7 @@ export default function Projects() {
     elements?.forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
-  }, [])
+  }, [filter])
 
   return (
     <section id="projects" className="relative py-20 px-4 sm:px-6 lg:px-8 bg-background">
