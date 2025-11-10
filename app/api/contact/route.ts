@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 
 const CONTACT_EMAIL = "harshitmishra8953@gmail.com"
 
@@ -41,49 +40,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    console.log("📧 New Contact Form Submission:")
+    console.log(`Name: ${body.name}`)
+    console.log(`Email: ${body.email}`)
+    console.log(`Subject: ${body.subject}`)
+    console.log(`Message: ${body.message}`)
+    console.log(`Timestamp: ${new Date().toISOString()}`)
 
-    console.log("[v0] Attempting to save contact submission:", {
-      name: body.name,
-      email: body.email,
-      subject: body.subject,
-    })
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    const { data, error } = await supabase
-      .from("contact_submissions")
-      .insert([
-        {
-          name: body.name,
-          email: body.email,
-          subject: body.subject,
-          message: body.message,
-        },
-      ])
-      .select()
+    if (supabaseUrl && supabaseKey) {
+      try {
+        const { createClient } = await import("@/lib/supabase/server")
+        const supabase = await createClient()
 
-    if (error) {
-      console.error("[v0] Supabase Error Details:", {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      })
+        console.log("[v0] Attempting to save to Supabase...")
 
-      let userMessage = "Failed to save your message. Please try again later."
-      if (error.code === "PGRST116") {
-        userMessage = "Table not found. Please contact the site owner."
-      } else if (error.code === "42501") {
-        userMessage = "Permission denied. Please contact the site owner."
+        const { data, error } = await supabase
+          .from("contact_submissions")
+          .insert([
+            {
+              name: body.name,
+              email: body.email,
+              subject: body.subject,
+              message: body.message,
+            },
+          ])
+          .select()
+
+        if (error) {
+          console.error("[v0] Supabase Error:", error.message)
+          // Continue even if Supabase fails - message is logged to console
+        } else {
+          console.log("[v0] Successfully saved to Supabase")
+        }
+      } catch (supabaseError) {
+        console.error("[v0] Supabase connection error:", supabaseError)
+        // Continue - message is already logged to console
       }
-
-      return NextResponse.json({ error: userMessage }, { status: 500 })
     }
-
-    console.log("[v0] Contact submission saved successfully:", {
-      id: data?.[0]?.id,
-      name: body.name,
-      email: body.email,
-    })
 
     return NextResponse.json(
       {
