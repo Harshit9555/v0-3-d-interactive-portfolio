@@ -43,6 +43,12 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
+    console.log("[v0] Attempting to save contact submission:", {
+      name: body.name,
+      email: body.email,
+      subject: body.subject,
+    })
+
     const { data, error } = await supabase
       .from("contact_submissions")
       .insert([
@@ -56,21 +62,27 @@ export async function POST(request: NextRequest) {
       .select()
 
     if (error) {
-      console.error("[Supabase Insert Error]:", error)
-      console.error("[v0] Error details:", {
+      console.error("[v0] Supabase Error Details:", {
         code: error.code,
         message: error.message,
         details: error.details,
+        hint: error.hint,
       })
-      return NextResponse.json({ error: "Failed to save your message. Please try again later." }, { status: 500 })
+
+      let userMessage = "Failed to save your message. Please try again later."
+      if (error.code === "PGRST116") {
+        userMessage = "Table not found. Please contact the site owner."
+      } else if (error.code === "42501") {
+        userMessage = "Permission denied. Please contact the site owner."
+      }
+
+      return NextResponse.json({ error: userMessage }, { status: 500 })
     }
 
-    console.log("[v0] Contact form submission saved successfully:", {
+    console.log("[v0] Contact submission saved successfully:", {
       id: data?.[0]?.id,
-      from: body.email,
       name: body.name,
-      subject: body.subject,
-      timestamp: new Date().toISOString(),
+      email: body.email,
     })
 
     return NextResponse.json(
@@ -81,11 +93,7 @@ export async function POST(request: NextRequest) {
       { status: 200 },
     )
   } catch (error) {
-    console.error("[Contact Form Error]:", error)
-    console.error("[v0] Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    })
+    console.error("[v0] Contact Form Error:", error)
     return NextResponse.json({ error: "Failed to process your message. Please try again." }, { status: 500 })
   }
 }
