@@ -48,7 +48,7 @@ const projectsData: Project[] = [
       "A safe space for anonymous mental health discussions with AI-powered support suggestions, community forums, and professional counselor connections.",
     technologies: ["Next.js", "Node.js", "PostgreSQL", "Socket.io", "Tailwind CSS"],
     image: "/mental-health-platform.jpg",
-    liveLink: "#",
+    liveLink: "https://v0-chat-with-vercel-woad-nine.vercel.app/",
     githubLink: "#",
     featured: true,
   },

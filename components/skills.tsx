@@ -138,7 +138,10 @@ export default function Skills() {
                         hoveredSkill === skill.name ? "bg-primary animate-pulse" : "bg-primary/30"
                       }`}
                       style={{
-                        animation: hoveredSkill === skill.name ? `pulse 1.5s ease-in-out infinite` : "none",
+                        animationName: hoveredSkill === skill.name ? "pulse" : "none",
+                        animationDuration: "1.5s",
+                        animationTimingFunction: "ease-in-out",
+                        animationIterationCount: "infinite",
                         animationDelay: `${dot * 0.2}s`,
                       }}
                     />
@@ -181,6 +184,15 @@ export default function Skills() {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
           }
         }
       `}</style>

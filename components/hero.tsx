@@ -79,7 +79,7 @@ export default function Hero() {
   const handleDownloadResume = () => {
     const link = document.createElement("a")
     link.href = "/api/resume"
-    link.download = "Harshit_Mishra_Resume.txt"
+    link.download = "Harshit_Mishra_Resume.pdf"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
